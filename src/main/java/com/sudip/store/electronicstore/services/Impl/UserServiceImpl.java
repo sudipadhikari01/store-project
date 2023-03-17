@@ -2,6 +2,7 @@ package com.sudip.store.electronicstore.services.Impl;
 
 import com.sudip.store.electronicstore.dtos.UserDto;
 import com.sudip.store.electronicstore.entity.User;
+import com.sudip.store.electronicstore.exception.ResourceNotFoundException;
 import com.sudip.store.electronicstore.repo.UserRepo;
 import com.sudip.store.electronicstore.services.UserService;
 import org.modelmapper.ModelMapper;
@@ -42,7 +43,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(UserDto userDto, String userId) {
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with Id:" + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Id:" + userId));
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
         user.setGender(userDto.getGender());
@@ -58,21 +59,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(String userId) {
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with Id:" + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Id:" + userId));
         userRepo.delete(user);
     }
 
     @Override
     public UserDto getUserById(String userId) {
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with Id:" + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Id:" + userId));
         return mapper.map(user, UserDto.class);
     }
 
     @Override
     public UserDto getUserByEmail(String email) {
         User user = userRepo.findUserByEmail(email).orElseThrow(
-                () -> new RuntimeException("User not found with provided email: " + email)
+                () -> new ResourceNotFoundException("User not found with provided email: " + email)
         );
         return mapper.map(user, UserDto.class);
     }
