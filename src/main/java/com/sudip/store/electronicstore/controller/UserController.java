@@ -1,5 +1,6 @@
 package com.sudip.store.electronicstore.controller;
 
+import com.sudip.store.electronicstore.dtos.PageableResponse;
 import com.sudip.store.electronicstore.dtos.UserDto;
 import com.sudip.store.electronicstore.payload.ResponseMessage;
 import com.sudip.store.electronicstore.services.UserService;
@@ -32,10 +33,13 @@ public class UserController {
         return new ResponseEntity<>(userDto1, HttpStatus.CREATED);
     }
 
-    // read
+    // find all users
     @GetMapping
-    public ResponseEntity<List<UserDto>> findAllUser() {
-        List<UserDto> allUsers = userService.getAllUsers();
+    public ResponseEntity<PageableResponse<UserDto>> findAllUser(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+                                                                 @RequestParam(value = "pageSize", defaultValue = "2", required = false) int pageSize,
+                                                                 @RequestParam(value = "sortBy", defaultValue = "name", required = false) String sortBy,
+                                                                 @RequestParam(value = "sortDir", defaultValue = "Asc", required = false) String sortDir) {
+        PageableResponse<UserDto> allUsers = userService.getAllUsers(pageNumber, pageSize, sortBy, sortDir);
         return new ResponseEntity<>(allUsers, HttpStatus.OK);
     }
 
