@@ -2,13 +2,17 @@ package com.sudip.store.electronicstore.controller;
 
 import com.sudip.store.electronicstore.dtos.PageableResponse;
 import com.sudip.store.electronicstore.dtos.UserDto;
+import com.sudip.store.electronicstore.payload.ImageResponse;
 import com.sudip.store.electronicstore.payload.ResponseMessage;
+import com.sudip.store.electronicstore.services.FileService;
 import com.sudip.store.electronicstore.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -20,6 +24,12 @@ import java.util.stream.Collectors;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FileService fileService;
+
+    @Value("${user.profile.image.path}")
+    private String imagePath;
 
     //create
     @PostMapping
@@ -78,11 +88,26 @@ public class UserController {
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
-    //search user
-    @GetMapping("/search/{id}")
-    public ResponseEntity<List<UserDto>> searchUser(@PathVariable("id") String name) {
+    //search  user by name
+    @GetMapping("/search/{name}")
+    public ResponseEntity<List<UserDto>> searchUser(@PathVariable("name") String name) {
         List<UserDto> byUserName = userService.getByUserName(name);
         return new ResponseEntity<>(byUserName, HttpStatus.OK);
+    }
+
+    //    upload image
+    @PostMapping("/upload/{userId}")
+    public ResponseEntity<ImageResponse> uploadImage(@PathVariable String userId, @RequestParam MultipartFile userImage) {
+        String fullPath = fileService.uploadFile(userImage, imagePath);
+        UserDto userById = userService.getUserById(userId);
+        userById.setImageName(fullPath);
+        UserDto userDto = userService.updateUser(userById, userId);
+
+        ImageResponse imageResponse = ImageResponse.builder().imageName(fullPath).message("Image uploaded successfully")
+                .httpStatus(HttpStatus.CREATED).success(true).build();
+
+        return new ResponseEntity(imageResponse, HttpStatus.CREATED);
+
     }
 
 }
