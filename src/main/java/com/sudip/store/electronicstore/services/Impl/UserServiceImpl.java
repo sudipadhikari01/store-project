@@ -9,12 +9,16 @@ import com.sudip.store.electronicstore.services.UserService;
 import com.sudip.store.electronicstore.utils.PageableHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,6 +31,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private ModelMapper mapper;
+
+    @Value("${user.profile.image.path}")
+    private String imagePath;
 
     @Override
     public UserDto createUser(UserDto userDto) {
@@ -69,7 +76,15 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with Id:" + userId));
+        String fullPath = user.getImageName() != null ? imagePath.concat(user.getImageName()) : imagePath;
+        Path path = Path.of(fullPath);
+        try {
+            Files.delete(path);
+        } catch (IOException e) {
+            throw new ResourceNotFoundException("Image not found");
+        }
         userRepo.delete(user);
+
     }
 
     @Override
