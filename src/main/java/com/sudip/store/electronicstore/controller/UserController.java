@@ -9,12 +9,17 @@ import com.sudip.store.electronicstore.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -96,7 +101,7 @@ public class UserController {
     }
 
     //    upload image
-    @PostMapping("/upload/{userId}")
+    @PostMapping("/image/{userId}")
     public ResponseEntity<ImageResponse> uploadImage(@PathVariable String userId, @RequestParam MultipartFile userImage) {
         String fullPath = fileService.uploadFile(userImage, imagePath);
         UserDto userById = userService.getUserById(userId);
@@ -109,5 +114,17 @@ public class UserController {
         return new ResponseEntity(imageResponse, HttpStatus.CREATED);
 
     }
+
+    //    serve image
+    @GetMapping("/image/{userId}")
+    public void serveImage(@PathVariable String userId, HttpServletResponse response) throws IOException {
+        UserDto userById = userService.getUserById(userId);
+
+        InputStream resource = fileService.getResource(imagePath, userById.getImageName());
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(resource, response.getOutputStream());
+
+    }
+
 
 }
